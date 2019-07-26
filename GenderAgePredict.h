@@ -10,7 +10,7 @@
 using namespace mxnet::cpp;
 using namespace std;
 using namespace cv;
-
+#define Amethod
 class GenderAgeDetect
 {
 
@@ -103,20 +103,20 @@ private:
 		if (rect.height > rect.width)
 		{
 			int padding = double(rect.height)*scale;
-			result.y = std::max(0, result.y - padding); //À­¸ß
-			result.height += 2 * padding; //À­³¤
-			int offset = (result.height - result.width) / 2; //³¤¿í²î/2
-			result.x = std::max(0, result.x - offset); //Ïò×ó
-			result.width += 2 * offset; //À­¿í
+			result.y = std::max(0, result.y - padding); //æ‹‰é«˜
+			result.height += 2 * padding; //æ‹‰é•¿
+			int offset = (result.height - result.width) / 2; //é•¿å®½å·®/2
+			result.x = std::max(0, result.x - offset); //å‘å·¦
+			result.width += 2 * offset; //æ‹‰å®½
 		}
 		else
 		{
 			int padding = double(rect.width)*scale;
-			result.x = std::max(0, result.x - padding); //Ïò×ó
-			result.width += 2 * padding;  //À­¿í
-			int offset = (result.width - result.height) / 2; //³¤¿í²î/2
-			result.y = std::max(0, result.y - offset); //ÏòÉÏ
-			result.height += 2 * offset; //À­³¤
+			result.x = std::max(0, result.x - padding); //å‘å·¦
+			result.width += 2 * padding;  //æ‹‰å®½
+			int offset = (result.width - result.height) / 2; //é•¿å®½å·®/2
+			result.y = std::max(0, result.y - offset); //å‘ä¸Š
+			result.height += 2 * offset; //æ‹‰é•¿
 		}
 		result.width = std::min(src.cols - result.x, result.width);
 		result.height = std::min(src.rows - result.y, result.height);
