@@ -12,6 +12,8 @@ there are two methods(GenderAgePredict*.h) to estimation the face gender and age
 
 but...the gender-estimation is low accuracy both that,maybe the reason is i have not did alignment face,cause i was failed...
 
+if you want to change the estimation method,you just only need to modify the include head file. they have same api 
+
 ## Model
 
 [deepinsight](https://github.com/deepinsight/insightface/tree/master/gender-age):
