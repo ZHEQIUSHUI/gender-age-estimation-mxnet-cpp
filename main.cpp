@@ -89,7 +89,11 @@ int main(int argc,char* args[])
 	m_facedetector.use_landmarks = use_lankmarks;
 
 	GenderAgeDetect m_genderage_detector(use_gpu);
-	m_genderage_detector.Loadmodel("models", "age","gender");
+#ifdef Amethod
+	m_genderage_detector.Loadmodel("models", "age", "gender");
+#elif defined Bmethod
+	m_genderage_detector.Loadmodel("models", "model");
+#endif // Amethod
 
 	Mat src;
 	if (isvideo)
