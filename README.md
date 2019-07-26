@@ -12,7 +12,7 @@ there are two methods(GenderAgePredict*.h) to estimation the face gender and age
 
 but...the gender-estimation is low accuracy both that,maybe the reason is i have not did alignment face,cause i was failed...
 
-## Model from deepinsight/insightface/gender-age
+## Model
 
 [deepinsight](https://github.com/deepinsight/insightface/tree/master/gender-age):
 
