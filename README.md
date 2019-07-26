@@ -1,6 +1,6 @@
 # gender-age-estimation-mxnet-cpp
 
-firse,you should see also my the other [repository](https://github.com/ZHEQIUSHUI/Retinaface-Cpp-mxnet),
+firse,you should see my other [repository](https://github.com/ZHEQIUSHUI/Retinaface-Cpp-mxnet),
 
 this repository is base on that
 
