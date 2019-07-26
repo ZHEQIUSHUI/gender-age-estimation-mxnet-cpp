@@ -24,6 +24,3 @@ opencv cpp lib
 
 mxnet cpp lib
 
-cuda 10.0
-
-cudnn 7.5
