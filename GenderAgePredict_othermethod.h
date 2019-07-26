@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <mxnet-cpp/MxNetCpp.h>
