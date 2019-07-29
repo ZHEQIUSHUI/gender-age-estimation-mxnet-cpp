@@ -1,5 +1,10 @@
 # gender-age-estimation-mxnet-cpp
 
+## update(2019.7.29)
+
+alignment methods....i have finished alignment method(FacePreprocess.h is cope from insightface).but it didn`t effect the accurary....
+
+## Say something
 firse,you should see my other [repository](https://github.com/ZHEQIUSHUI/Retinaface-Cpp-mxnet),
 
 this repository is base on that
