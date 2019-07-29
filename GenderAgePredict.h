@@ -6,10 +6,12 @@
 #include <math.h>
 #include <fstream>
 #include "Retinaface.h"
+#include "FacePreprocess.h"
 
 using namespace mxnet::cpp;
 using namespace std;
 using namespace cv;
+
 #define Amethod
 class GenderAgeDetect
 {
@@ -23,6 +25,13 @@ class GenderAgeDetect
 	std::map<std::string, mxnet::cpp::NDArray> args_gender;
 	std::map<std::string, mxnet::cpp::NDArray> aux_gender;
 	int image_size = 64;
+
+	Point2f target[5] = { Point2f(30.2946, 51.6963),
+		Point2f(65.5318, 51.5014),
+		Point2f(48.0252, 71.7366),
+		Point2f(33.5493, 92.3655),
+		Point2f(62.7299, 92.2041) };
+	Mat _dst = Mat(5, 2, CV_32F);
 
 private:
 	mxnet::cpp::NDArray data2ndarray(mxnet::cpp::Context ctx, float * data, int batch_size, int num_channels, int height, int width)
@@ -63,6 +72,21 @@ private:
 		return ret;
 	}
 
+	Mat alignFace(Mat src, Face face, Mat dst)
+	{
+		Mat _src(5, 2, CV_32F);
+		for (size_t i = 0; i < _src.rows; i++)
+		{
+			_src.at<float>(i, 0) = face.landmarks[i].x;
+			_src.at<float>(i, 1) = face.landmarks[i].y;
+		}
+		Mat m = FacePreprocess::similarTransform(_src, dst);
+		Mat _m = m.rowRange(0, 2);
+		Mat warp;
+		warpAffine(src, warp, _m, Size(112, 112));
+		return warp;
+	}
+
 	NDArray GetDataBatch(Mat src, vector<Face> faces)
 	{
 		int len_img = image_size*image_size;
@@ -72,9 +96,10 @@ private:
 		{
 			int offset = src.channels()*i*len_img;
 
-			Mat crop(src, preprocessRect(faces[i].boundingbox, src, 0.1));
+			Mat crop = alignFace(src, faces[i], _dst);
 			Mat img;
 			resize(crop, img, Size(image_size, image_size));
+			
 			img.convertTo(img, CV_32FC3);
 			Mat bgr[3];
 			split(img, bgr);
@@ -103,30 +128,35 @@ private:
 		if (rect.height > rect.width)
 		{
 			int padding = double(rect.height)*scale;
-			result.y = std::max(0, result.y - padding); //æ‹‰é«˜
-			result.height += 2 * padding; //æ‹‰é•¿
-			int offset = (result.height - result.width) / 2; //é•¿å®½å·®/2
-			result.x = std::max(0, result.x - offset); //å‘å·¦
-			result.width += 2 * offset; //æ‹‰å®½
+			result.y = std::max(0, result.y - padding); //À­¸ß
+			result.height += 2 * padding; //À­³¤
+			int offset = (result.height - result.width) / 2; //³¤¿í²î/2
+			result.x = std::max(0, result.x - offset); //Ïò×ó
+			result.width += 2 * offset; //À­¿í
 		}
 		else
 		{
 			int padding = double(rect.width)*scale;
-			result.x = std::max(0, result.x - padding); //å‘å·¦
-			result.width += 2 * padding;  //æ‹‰å®½
-			int offset = (result.width - result.height) / 2; //é•¿å®½å·®/2
-			result.y = std::max(0, result.y - offset); //å‘ä¸Š
-			result.height += 2 * offset; //æ‹‰é•¿
+			result.x = std::max(0, result.x - padding); //Ïò×ó
+			result.width += 2 * padding;  //À­¿í
+			int offset = (result.width - result.height) / 2; //³¤¿í²î/2
+			result.y = std::max(0, result.y - offset); //ÏòÉÏ
+			result.height += 2 * offset; //À­³¤
 		}
 		result.width = std::min(src.cols - result.x, result.width);
 		result.height = std::min(src.rows - result.y, result.height);
 		return result;
 	}
 public:
-	GenderAgeDetect(bool use_gpu, int imagesize = 64)
+	GenderAgeDetect(bool use_gpu)
 	{
 		Ctx = use_gpu ? new Context(kGPU, 0) : new Context(kCPU, 0);
-		image_size = imagesize;
+
+		for (size_t i = 0; i < _dst.rows; i++)
+		{
+			_dst.at<float>(i, 0) = target[i].x + 8.0;
+			_dst.at<float>(i, 1) = target[i].y;
+		}
 	}
 	~GenderAgeDetect()
 	{

@@ -3,9 +3,32 @@
 
 
 #include "Retinaface.h"
-#include "GenderAgePredict.h"
+#include "GenderAgePredict_othermethod.h"
 #include "FacePreprocess.h"
 
+
+void DrawAgeGenderScore(Mat& src, vector<Face> faces, vector<string> genderv, vector<mx_float> agev,bool use_landmarks)
+{
+	//cout << "find " << faces.size() << " faces fps " << fps / times << endl;
+	for (size_t i = 0; i < faces.size(); i++)
+	{
+		rectangle(src, faces[i].boundingbox, Scalar(0, 255, 0), 2);
+
+		putText(src, to_string(faces[i].score), Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 20), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
+
+		if (use_landmarks)
+		{
+			putText(src, genderv[i], Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 40), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
+			putText(src, "Age:" + to_string((int)agev[i]), Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 60), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
+
+			for (size_t j = 0; j < faces[i].landmarks.size(); j++)
+			{
+				circle(src, faces[i].landmarks[j], 1, Scalar(255, 0, 0), 2);
+			}
+		}
+		
+	}
+}
 
 
 int main(int argc,char* args[])
@@ -33,7 +56,6 @@ int main(int argc,char* args[])
 	}
 	//dlog(argc);
 	bool isvideo = true;
-	bool isCam = false;
 	bool use_lankmarks = 1;
 	bool use_gpu = 1;
 	bool use_gender = 1;
@@ -89,11 +111,14 @@ int main(int argc,char* args[])
 	m_facedetector.use_landmarks = use_lankmarks;
 
 	GenderAgeDetect m_genderage_detector(use_gpu);
+
 #ifdef Amethod
 	m_genderage_detector.Loadmodel("models", "age", "gender");
 #elif defined Bmethod
 	m_genderage_detector.Loadmodel("models", "model");
 #endif // Amethod
+
+	
 
 	Mat src;
 	if (isvideo)
@@ -128,35 +153,21 @@ int main(int argc,char* args[])
 				continue;
 			}
 			vector<Face> faces = m_facedetector.detect(src, score, vector<mx_float> {scale});
+			
+
+			vector<mx_float> agev;
+			vector<string> genderv;
+			if (faces.size()&&use_lankmarks)
+			{
+				m_genderage_detector.detect(src, faces, agev, genderv, use_age, use_gender);
+			}
+			DrawAgeGenderScore(src, faces, genderv, agev, use_lankmarks);
 			end = clock();
 			double times = double(end - start) / 1000.0;
 			fps++;
 			printf("\r");
 			printf("find %d faces fps %f ,remainder %.0f playpercent %.2f%%", faces.size(), fps / times, totalframecount - fps, (fps * 100) / totalframecount);
 
-			vector<mx_float> agev;
-			vector<string> genderv;
-			if (faces.size())
-			{
-				m_genderage_detector.detect(src, faces, agev, genderv, use_age, use_gender);
-			}
-			
-
-			//cout << "find " << faces.size() << " faces fps " << fps / times << endl;
-			for (size_t i = 0; i < faces.size(); i++)
-			{
-				rectangle(src, faces[i].boundingbox, Scalar(0, 255, 0), 2);
-
-				putText(src, to_string(faces[i].score), Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 20), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
-
-				putText(src, genderv[i], Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 40), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
-				putText(src, "Age:" + to_string((int)agev[i]), Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 60), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
-
-				for (size_t j = 0; j < faces[i].landmarks.size(); j++)
-				{
-					circle(src, faces[i].landmarks[j], 1, Scalar(255, 0, 0), 2);
-				}
-			}
 			imshow(path, src);
 			if (waitKey(1) == 27)
 			{
@@ -176,26 +187,70 @@ int main(int argc,char* args[])
 		cout << "find " << faces.size() << " faces"<< endl;
 		vector<mx_float> agev;
 		vector<string> genderv;
-		if (faces.size())
+		if (faces.size()&&use_lankmarks)
 		{
 			m_genderage_detector.detect(src, faces, agev, genderv, use_age, use_gender);
 		}
-		for (size_t i = 0; i < faces.size(); i++)
-		{
-			rectangle(src, faces[i].boundingbox, Scalar(0, 0, 255), 2);
-
-			putText(src, to_string(faces[i].score), Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 20), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
-
-			putText(src, genderv[i], Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 40), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
-			putText(src, "Age:" + to_string((int)agev[i]), Point(faces[i].boundingbox.x + 2, faces[i].boundingbox.y + 60), FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1);
-
-			for (size_t j = 0; j < faces[i].landmarks.size(); j++)
-			{
-				circle(src, faces[i].landmarks[j], 1, Scalar(255, 0, 0), 2);
-			}
-		}
+		DrawAgeGenderScore(src, faces, genderv, agev,use_lankmarks);
 		imshow(path, src);
 	}
 	waitKey(0);
+
+	//RetinaFace m_facedetector(1);
+	//m_facedetector.Loadmodel("E:/PyCode/insightface/models", "mnet.25");
+	//m_facedetector.use_landmarks = 1;
+	//VideoCapture video(0);
+	//Mat src;
+	//while (true)
+	//{
+	//	video >> src;
+	//	vector<Face> faces = m_facedetector.detect(src, 0.5, vector<mx_float> {1.0});
+	//	Point2f target[5] = {	   Point2f(30.2946, 51.6963),
+	//							   Point2f(65.5318, 51.5014),
+	//							   Point2f(48.0252, 71.7366),
+	//						       Point2f(33.5493, 92.3655),
+	//							   Point2f(62.7299, 92.2041) };
+
+	//	Mat _dst(5, 2, CV_32F);
+	//	for (size_t i = 0; i < _dst.rows; i++)
+	//	{
+	//		_dst.at<float>(i, 0) = target[i].x + 8.0;
+	//		_dst.at<float>(i, 1) = target[i].y;
+	//	}
+	//	Mat warp = alignFace(src, faces[0], _dst);
+	//	/*Mat _src(5, 2, CV_32F);
+	//	for (size_t i = 0; i < _src.rows; i++)
+	//	{
+	//		_src.at<float>(i, 0) = faces[0].landmarks[i].x;
+	//		_src.at<float>(i, 1) = faces[0].landmarks[i].y;
+	//	}
+	//	Mat m = FacePreprocess::similarTransform(_src, _dst);
+	//	Mat _m = m.rowRange(0, 2);
+	//
+	//	Mat warp;
+	//	warpAffine(src, warp, _m, Size(112, 112));*/
+	//	
+	//	imshow("align", warp);
+	//	rectangle(src,faces[0].boundingbox,Scalar(0,0,255));
+	//	imshow("src", src);
+	//	if (waitKey(1)==27)
+	//	{
+	//		break;
+	//	}
+	//}
+
+
+
+
+	/*GenderAgeDetect m_genderage_detector(false);
+	m_genderage_detector.Loadmodel("models", "model");
+
+	Mat src = imread("E:\\face.png");
+	vector<Face> faces = { Face{Rect(0,0,src.cols,src.rows),1.0f,vector<Point2f>{}} };
+	vector<int> agev;
+	vector<string> genderv;
+	m_genderage_detector.detect(src, faces, agev, genderv);
+	cout << agev[0] << " " << genderv[0] << endl;
+	waitKey(0);*/
 	return 0;
 }
